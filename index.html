@@ -242,17 +242,18 @@
     }
     .chip:hover { background: rgba(255,255,255,.16); transform: none; }
 
-    .gear {
-      margin-left: auto;
+    .icon-btn {
       width: 36px;
       height: 36px;
       flex: 0 0 36px;
       padding: 0;
       border-radius: 10px;
       background: rgba(255,255,255,.08);
-      font-size: 18px;
+      color: var(--text);
+      font-size: 16px;
     }
-    .gear:hover { background: rgba(255,255,255,.16); transform: none; }
+    .icon-btn:hover { background: rgba(255,255,255,.16); transform: none; }
+    #clear-btn { margin-left: auto; }
 
     .overlay {
       position: fixed;
@@ -308,7 +309,8 @@
         <div class="title">Oasis Ai</div>
         <div class="status"><span class="dot"></span> <span id="status-text">Online · relationship adviser</span></div>
       </div>
-      <button class="gear" id="settings-btn" title="API settings" aria-label="API settings">⚙</button>
+      <button class="icon-btn" id="clear-btn" title="Clear chat" aria-label="Clear chat">🗑</button>
+      <button class="icon-btn" id="settings-btn" title="API settings" aria-label="API settings">⚙</button>
     </header>
 
     <div class="messages" id="messages" aria-live="polite"></div>
@@ -323,13 +325,13 @@
       <input id="input" placeholder="Tell me what happened..." maxlength="500" aria-label="Message" />
       <button type="submit">Send</button>
     </form>
-    <div class="hint">Relationship advice · add an API key with ⚙ for AI replies · Press Enter to send</div>
+    <div class="hint">Private by design · nothing is stored or uploaded · 🗑 clears this chat</div>
   </div>
 
   <div class="overlay" id="settings-overlay" role="dialog" aria-modal="true" aria-label="API settings">
     <div class="modal">
       <h2>API settings</h2>
-      <p>Use any OpenAI-compatible API. Settings are saved only in this browser. Leave the key blank to use the local demo bot.</p>
+      <p>Use any OpenAI-compatible API. Your key stays in this tab's memory only — it is never saved, uploaded, or shared. Refreshing the page clears it. Leave the key blank to use the local adviser, where nothing leaves your device.</p>
 
       <div class="field">
         <label for="provider">Provider preset</label>
@@ -374,14 +376,16 @@
       custom: { base: '', model: '' }
     };
 
-    const saved = (name, fallback) =>
-      localStorage.getItem('oasis_' + name) || localStorage.getItem('hehe_' + name) || fallback;
+    ['oasis_provider', 'oasis_base', 'oasis_key', 'oasis_model',
+     'hehe_provider', 'hehe_base', 'hehe_key', 'hehe_model'].forEach(key => {
+      try { localStorage.removeItem(key); } catch (_) {}
+    });
 
     const settings = {
-      provider: saved('provider', 'openai'),
-      base: saved('base', PRESETS.openai.base),
-      key: saved('key', ''),
-      model: saved('model', PRESETS.openai.model)
+      provider: 'openai',
+      base: PRESETS.openai.base,
+      key: '',
+      model: PRESETS.openai.model
     };
 
     function updateStatus() {
@@ -437,11 +441,6 @@
       settings.base = base;
       settings.key = key;
       settings.model = model;
-
-      localStorage.setItem('oasis_provider', settings.provider);
-      localStorage.setItem('oasis_base', settings.base);
-      localStorage.setItem('oasis_key', settings.key);
-      localStorage.setItem('oasis_model', settings.model);
 
       updateStatus();
       closeSettings();
@@ -571,7 +570,15 @@
       return reply.trim();
     }
 
-    addMessage("Hi, I'm Oasis Ai 💜 Your relationship adviser. Tell me what happened — do you want to get back together or move on? I'll give you honest, judgment-free advice.", 'bot');
+    const WELCOME = "Hi, I'm Oasis Ai 💜 Your relationship adviser. Tell me what happened — do you want to get back together or move on? I'll give you honest, judgment-free advice.";
+    addMessage(WELCOME, 'bot');
+
+    document.getElementById('clear-btn').addEventListener('click', () => {
+      messages.replaceChildren();
+      history.length = 0;
+      addMessage(WELCOME, 'bot');
+      input.focus();
+    });
 
     document.querySelectorAll('.chip').forEach(chip => {
       chip.addEventListener('click', () => {
