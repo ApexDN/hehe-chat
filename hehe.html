@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>hehe — Chat</title>
+  <title>Oasis Ai — Relationship Adviser</title>
   <style>
     :root {
       --bg: #0f172a;
@@ -225,6 +225,23 @@
     button:hover { filter: brightness(1.1); transform: translateY(-1px); }
     button:active { transform: translateY(0); }
 
+    .quick {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      padding: 12px 18px 0;
+      background: var(--panel-2);
+    }
+    .chip {
+      padding: 7px 12px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.08);
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .chip:hover { background: rgba(255,255,255,.16); transform: none; }
+
     .gear {
       margin-left: auto;
       width: 36px;
@@ -286,21 +303,27 @@
 <body>
   <div class="chat">
     <header>
-      <div class="avatar">h</div>
+      <div class="avatar">O</div>
       <div>
-        <div class="title">hehe chat</div>
-        <div class="status"><span class="dot"></span> <span id="status-text">Online · demo bot</span></div>
+        <div class="title">Oasis Ai</div>
+        <div class="status"><span class="dot"></span> <span id="status-text">Online · relationship adviser</span></div>
       </div>
       <button class="gear" id="settings-btn" title="API settings" aria-label="API settings">⚙</button>
     </header>
 
     <div class="messages" id="messages" aria-live="polite"></div>
 
+    <div class="quick">
+      <button type="button" class="chip" data-text="I want to get back with my ex">I want them back</button>
+      <button type="button" class="chip" data-text="I want to move on">I want to move on</button>
+      <button type="button" class="chip" data-text="I'm not sure what to do">I'm not sure</button>
+    </div>
+
     <form id="form" autocomplete="off">
-      <input id="input" placeholder="Type a message..." maxlength="500" aria-label="Message" />
+      <input id="input" placeholder="Tell me what happened..." maxlength="500" aria-label="Message" />
       <button type="submit">Send</button>
     </form>
-    <div class="hint">Local demo · add an API key with ⚙ for AI replies · Press Enter to send</div>
+    <div class="hint">Relationship advice · add an API key with ⚙ for AI replies · Press Enter to send</div>
   </div>
 
   <div class="overlay" id="settings-overlay" role="dialog" aria-modal="true" aria-label="API settings">
@@ -351,17 +374,20 @@
       custom: { base: '', model: '' }
     };
 
+    const saved = (name, fallback) =>
+      localStorage.getItem('oasis_' + name) || localStorage.getItem('hehe_' + name) || fallback;
+
     const settings = {
-      provider: localStorage.getItem('hehe_provider') || 'openai',
-      base: localStorage.getItem('hehe_base') || PRESETS.openai.base,
-      key: localStorage.getItem('hehe_key') || '',
-      model: localStorage.getItem('hehe_model') || PRESETS.openai.model
+      provider: saved('provider', 'openai'),
+      base: saved('base', PRESETS.openai.base),
+      key: saved('key', ''),
+      model: saved('model', PRESETS.openai.model)
     };
 
     function updateStatus() {
       statusText.textContent = settings.key
         ? 'AI connected · ' + settings.model
-        : 'Online · demo bot';
+        : 'Online · relationship adviser';
     }
     updateStatus();
 
@@ -412,10 +438,10 @@
       settings.key = key;
       settings.model = model;
 
-      localStorage.setItem('hehe_provider', settings.provider);
-      localStorage.setItem('hehe_base', settings.base);
-      localStorage.setItem('hehe_key', settings.key);
-      localStorage.setItem('hehe_model', settings.model);
+      localStorage.setItem('oasis_provider', settings.provider);
+      localStorage.setItem('oasis_base', settings.base);
+      localStorage.setItem('oasis_key', settings.key);
+      localStorage.setItem('oasis_model', settings.model);
 
       updateStatus();
       closeSettings();
@@ -433,7 +459,7 @@
 
       const mini = document.createElement('div');
       mini.className = 'mini';
-      mini.textContent = who === 'me' ? 'You' : 'h';
+      mini.textContent = who === 'me' ? 'You' : 'O';
 
       const bubble = document.createElement('div');
       bubble.className = 'bubble';
@@ -441,7 +467,7 @@
 
       const time = document.createElement('span');
       time.className = 'time';
-      time.textContent = (who === 'me' ? 'You' : 'hehe bot') + ' · ' + timeNow();
+      time.textContent = (who === 'me' ? 'You' : 'Oasis Ai') + ' · ' + timeNow();
       bubble.appendChild(time);
 
       row.append(mini, bubble);
@@ -454,7 +480,7 @@
       const row = document.createElement('div');
       row.className = 'row bot';
       row.id = 'typing-row';
-      row.innerHTML = '<div class="mini">h</div><div class="bubble typing"><span></span><span></span><span></span></div>';
+      row.innerHTML = '<div class="mini">O</div><div class="bubble typing"><span></span><span></span><span></span></div>';
       messages.appendChild(row);
       messages.scrollTop = messages.scrollHeight;
     }
@@ -463,27 +489,45 @@
       document.getElementById('typing-row')?.remove();
     }
 
-    const replies = [
-      'hehe! 😄 tell me more',
-      'That is actually pretty cool.',
-      'Hmm, interesting — what made you think of that?',
-      'I am just a little demo bot, but I am all ears 👂',
-      'lol hehe 💜',
-      'Try saying "hi", "help", or "joke"!',
-      'You got it! ✅',
-      'Nice one. What else is on your mind?'
-    ];
+    const advice = {
+      getBack: [
+        'If you want them back, start with honest reflection: what went wrong, and what you would genuinely change. Then give them space and reach out once with a calm, respectful message — no guilt, no chasing.',
+        'Wanting them back is human, but your best chance is to heal first. Own your part, apologize clearly if you need to, and let consistency — not pressure — do the talking. Respect whatever they decide.',
+        'Before trying to win them back, ask yourself if you miss the person or the feeling. If it is the person, give them room, invite one honest conversation, and accept their answer gracefully.'
+      ],
+      moveOn: [
+        'Moving on starts with boundaries: mute or limit their socials, stop rereading old messages, and give yourself real space. Fill that time with routine, friends, and something that reminds you who you are.',
+        'It is okay to grieve — do not rush it. Let yourself feel it, then gently put energy into sleep, movement, and people who show up for you. If it feels too heavy, talking to a counselor can really help.',
+        'To move forward, make one small plan for each day this week instead of trying to forget them all at once. Progress is choosing yourself a little more each day, not flipping a switch.'
+      ],
+      unsure: [
+        'Tell me a bit more: do you want to win them back, or are you trying to move on? What happened between you two?',
+        'I can help either way. Are you hoping to get back together, or trying to let go? Share a little about the situation and I will give you practical, judgment-free advice.',
+        'Let us start with where you are right now. Do you want another chance with them, or do you want help moving forward?'
+      ]
+    };
+
+    function detectIntent(text) {
+      const t = text.toLowerCase();
+      const back = /get (back|them back|her back|him back)|get back together|win (them|her|him) back|reconcile|come back|second chance|still love|still care|miss (them|her|him)|want (them|her|him) back|fix (it|things|us)|make (it|things|us) right|apolog|why they left/i.test(t);
+      const move = /move on|let go|forget (them|her|him)|get over|broke up|breakup|ended (it|things|us)|no contact|stop thinking|healing|over (them|her|him)|moving forward|better off/i.test(t);
+      if (back && move) return 'unsure';
+      if (back) return 'getBack';
+      if (move) return 'moveOn';
+      return 'unsure';
+    }
 
     function botReply(text) {
       const t = text.toLowerCase();
-      if (/^(hi|hello|hey|yo)\b/.test(t)) return 'Hey there! 👋 hehe nice to meet you.';
-      if (t.includes('how are you')) return 'I am great, thanks for asking! hehe 😄';
-      if (t.includes('name')) return 'I am hehe bot, your tiny chat buddy.';
-      if (t.includes('joke')) return 'Why did the news reporter get fired? Because they were always on the scene! 📰😄';
-      if (t.includes('help')) return 'Just type anything and I will reply. Commands: hi, joke, name, time.';
-      if (t.includes('time')) return 'It is ' + timeNow() + ' right now. ⏰';
-      if (t.includes('bye')) return 'Bye! Come back and chat again soon 👋';
-      return replies[Math.floor(Math.random() * replies.length)];
+      if (/^(hi|hello|hey|yo)\b/.test(t)) return "Hey, I'm Oasis Ai, your relationship adviser 💜 Tell me what happened — do you want to get back together or move on?";
+      if (t.includes('how are you')) return "I'm here and ready to listen. What's going on with you and them?";
+      if (t.includes('name')) return "I'm Oasis Ai, a relationship adviser here to help you figure out your next step.";
+      if (t.includes('help')) return "Tell me: are you trying to get back with someone, or trying to move on? Share what happened and I'll give you honest, judgment-free advice.";
+      if (t.includes('time')) return 'It is ' + timeNow() + ' right now. 💜';
+      if (t.includes('bye')) return 'Take care of yourself. Come back anytime you want to talk 💜';
+
+      const pool = advice[detectIntent(text)];
+      return pool[Math.floor(Math.random() * pool.length)];
     }
 
     async function aiReply(text) {
@@ -496,12 +540,22 @@
         body: JSON.stringify({
           model: settings.model,
           messages: [
-            { role: 'system', content: 'You are hehe, a friendly and playful chat companion. Keep replies short, warm and conversational.' },
+            {
+              role: 'system',
+              content: [
+                'You are Oasis Ai, a warm, practical relationship adviser.',
+                'First, infer from the user message whether they want to (a) get back together with an ex or partner, (b) move on, or (c) are unsure.',
+                'If they want to get back: encourage honest self-reflection, taking responsibility, giving the other person space, one respectful conversation, and accepting their decision. Never suggest manipulation, guilt-tripping, stalking, monitoring, or ignoring boundaries.',
+                'If they want to move on: validate their feelings, suggest no-contact or reduced contact, self-care routines, support from friends, and professional help when needed. Avoid toxic positivity.',
+                'If unsure: ask one or two short clarifying questions about what happened and what they want.',
+                'Use the user wording (her, him, them) when they provide it. Keep replies short (2-5 sentences), compassionate, and actionable. Do not claim to be a licensed therapist; suggest professional support for serious distress.'
+              ].join(' ')
+            },
             ...history.slice(-11, -1).map(m => ({ role: m.role, content: m.text })),
             { role: 'user', content: text }
           ],
-          temperature: 0.8,
-          max_tokens: 300
+          temperature: 0.7,
+          max_tokens: 250
         })
       });
 
@@ -517,7 +571,14 @@
       return reply.trim();
     }
 
-    addMessage('Hey! Welcome to hehe chat 😄 Type something to start talking.', 'bot');
+    addMessage("Hi, I'm Oasis Ai 💜 Your relationship adviser. Tell me what happened — do you want to get back together or move on? I'll give you honest, judgment-free advice.", 'bot');
+
+    document.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        input.value = chip.dataset.text;
+        form.requestSubmit();
+      });
+    });
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
